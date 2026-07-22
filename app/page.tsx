@@ -1,65 +1,76 @@
-import Image from "next/image";
+import { prisma } from '@/lib/prisma'
+import { relativeTime } from '@/lib/relativeTime'
 
-export default function Home() {
+const STATUS_STYLES = {
+  urgent: { label: 'Urgent', dot: 'bg-red-500', badge: 'bg-red-100 text-red-800' },
+  low: { label: 'Low', dot: 'bg-yellow-500', badge: 'bg-yellow-100 text-yellow-800' },
+  enough: { label: 'Enough', dot: 'bg-green-500', badge: 'bg-green-100 text-green-800' },
+} as const
+
+async function getNeedBoard() {
+  return prisma.supplyStatus.findMany({
+    select: {
+      item: true,
+      status: true,
+      updated_at: true,
+      checkpoint: { select: { name: true } },
+    },
+    // Postgres orders native enums by declaration order (urgent, low, enough),
+    // so this ordering already puts the most urgent items first.
+    orderBy: [{ status: 'asc' }, { updated_at: 'asc' }],
+  })
+}
+
+export default async function Home() {
+  const needBoard = await getNeedBoard()
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="min-h-screen bg-zinc-50 dark:bg-black">
+      <main className="mx-auto flex max-w-3xl flex-col gap-8 px-4 py-12 sm:px-6">
+        <header className="flex flex-col gap-3 text-center sm:text-left">
+          <h1 className="text-2xl font-bold tracking-tight text-black dark:text-zinc-50 sm:text-3xl">
+            Support Students with Essential Supplies
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-base text-zinc-600 dark:text-zinc-400">
+            Help deliver food, water, medicines, and other essentials where they are
+            needed most. Every contribution reaches a volunteer coordinating supplies
+            on the ground.
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+          <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-200">
+            #HumAapkeSaathHai
+          </p>
+        </header>
+
+        <section className="flex flex-col gap-3">
+          {needBoard.map((entry) => {
+            const style = STATUS_STYLES[entry.status]
+            return (
+              <div
+                key={`${entry.checkpoint.name}-${entry.item}`}
+                className="flex items-center justify-between gap-4 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
+              >
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                    {entry.checkpoint.name}
+                  </span>
+                  <span className="text-lg font-semibold text-black dark:text-zinc-50">
+                    {entry.item}
+                  </span>
+                  <span className="text-xs text-zinc-400 dark:text-zinc-500">
+                    Updated {relativeTime(entry.updated_at)}
+                  </span>
+                </div>
+                <span
+                  className={`flex items-center gap-2 whitespace-nowrap rounded-full px-3 py-1 text-sm font-medium ${style.badge}`}
+                >
+                  <span className={`h-2 w-2 rounded-full ${style.dot}`} />
+                  {style.label}
+                </span>
+              </div>
+            )
+          })}
+        </section>
       </main>
     </div>
-  );
+  )
 }

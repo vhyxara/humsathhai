@@ -1,0 +1,94 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Volunteer {
+  id              String          @id @default(cuid())
+  name            String
+  photo_url       String?
+  role            VolunteerRole
+  checkpoint_id   String?
+  checkpoint      Checkpoint?     @relation(fields: [checkpoint_id], references: [id])
+  telegram_handle String
+  consent_given   Boolean         @default(false)
+  status          VolunteerStatus @default(active)
+}
+
+enum VolunteerRole {
+  entry
+  checkpoint
+}
+
+enum VolunteerStatus {
+  active
+  inactive
+}
+
+model Checkpoint {
+  id             String         @id @default(cuid())
+  name           String
+  entry_point_id String?
+  entryPoint     EntryPoint?    @relation(fields: [entry_point_id], references: [id])
+  created_at     DateTime       @default(now())
+  volunteers     Volunteer[]
+  supplyStatuses SupplyStatus[]
+}
+
+model EntryPoint {
+  id           String       @id @default(cuid())
+  name         String
+  volunteer_id String?
+  checkpoints  Checkpoint[]
+}
+
+model SupplyStatus {
+  id            String      @id @default(cuid())
+  checkpoint_id String
+  checkpoint    Checkpoint  @relation(fields: [checkpoint_id], references: [id])
+  item          String
+  status        SupplyLevel
+  updated_at    DateTime    @updatedAt
+}
+
+enum SupplyLevel {
+  urgent
+  low
+  enough
+}
+
+model Admin {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  password_hash String
+  role          AdminRole
+}
+
+enum AdminRole {
+  super
+  checkpoint
+}
+
+model VolunteerApplication {
+  id              String            @id @default(cuid())
+  name            String
+  telegram_handle String
+  message         String?
+  status          ApplicationStatus @default(pending)
+  submitted_at    DateTime          @default(now())
+}
+
+enum ApplicationStatus {
+  pending
+  approved
+  rejected
+}

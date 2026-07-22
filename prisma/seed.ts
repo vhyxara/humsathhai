@@ -1,0 +1,79 @@
+import { PrismaClient } from '@prisma/client'
+import { PrismaPg } from '@prisma/adapter-pg'
+
+const connectionString = process.env.DATABASE_URL
+
+if (!connectionString) {
+  throw new Error('DATABASE_URL is not set')
+}
+
+const adapter = new PrismaPg({ connectionString })
+const prisma = new PrismaClient({ adapter })
+
+const HOUR = 60 * 60 * 1000
+
+async function main() {
+  const entryPoint1 = await prisma.entryPoint.create({
+    data: { name: 'Entry Point 1' },
+  })
+  const entryPoint2 = await prisma.entryPoint.create({
+    data: { name: 'Entry Point 2' },
+  })
+
+  const pointA = await prisma.checkpoint.create({
+    data: { name: 'Point A', entry_point_id: entryPoint1.id },
+  })
+  const pointB = await prisma.checkpoint.create({
+    data: { name: 'Point B', entry_point_id: entryPoint1.id },
+  })
+  const pointC = await prisma.checkpoint.create({
+    data: { name: 'Point C', entry_point_id: entryPoint2.id },
+  })
+  const pointD = await prisma.checkpoint.create({
+    data: { name: 'Point D', entry_point_id: entryPoint2.id },
+  })
+
+  await prisma.volunteer.create({
+    data: {
+      name: 'Placeholder Volunteer 1',
+      role: 'entry',
+      telegram_handle: 'placeholder_volunteer_1',
+      consent_given: true,
+    },
+  })
+  await prisma.volunteer.create({
+    data: {
+      name: 'Placeholder Volunteer 2',
+      role: 'checkpoint',
+      checkpoint_id: pointA.id,
+      telegram_handle: 'placeholder_volunteer_2',
+      consent_given: true,
+    },
+  })
+
+  const now = Date.now()
+
+  await prisma.supplyStatus.createMany({
+    data: [
+      { checkpoint_id: pointA.id, item: 'Food', status: 'urgent', updated_at: new Date(now - 12 * 60 * 1000) },
+      { checkpoint_id: pointA.id, item: 'Water', status: 'enough', updated_at: new Date(now - 2 * HOUR) },
+      { checkpoint_id: pointB.id, item: 'Masks', status: 'enough', updated_at: new Date(now - 2 * HOUR) },
+      { checkpoint_id: pointB.id, item: 'Gloves', status: 'low', updated_at: new Date(now - 3 * HOUR) },
+      { checkpoint_id: pointC.id, item: 'Water', status: 'urgent', updated_at: new Date(now - 40 * 60 * 1000) },
+      { checkpoint_id: pointC.id, item: 'ORS', status: 'low', updated_at: new Date(now - 90 * 60 * 1000) },
+      { checkpoint_id: pointD.id, item: 'Medkit', status: 'low', updated_at: new Date(now - 1 * HOUR) },
+      { checkpoint_id: pointD.id, item: 'Blankets', status: 'urgent', updated_at: new Date(now - 5 * HOUR) },
+    ],
+  })
+
+  console.log('Seed complete.')
+}
+
+main()
+  .catch((error) => {
+    console.error(error)
+    process.exitCode = 1
+  })
+  .finally(async () => {
+    await prisma.$disconnect()
+  })

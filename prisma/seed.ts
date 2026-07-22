@@ -80,6 +80,71 @@ async function main() {
     },
   })
 
+  const admin2User = await prisma.user.create({
+    data: { email: 'admin2@example.test', password_hash: passwordHash, type: 'admin' },
+  })
+  await prisma.admin.create({
+    data: {
+      name: 'Placeholder Checkpoint Admin',
+      email: 'admin2@example.test',
+      password_hash: passwordHash,
+      role: 'checkpoint',
+      user_id: admin2User.id,
+    },
+  })
+
+  const volunteer3User = await prisma.user.create({
+    data: { email: 'volunteer3@example.test', password_hash: passwordHash, type: 'volunteer' },
+  })
+  await prisma.volunteer.create({
+    data: {
+      name: 'Placeholder Volunteer 3',
+      role: 'entry',
+      entry_point_id: entryPoint2.id,
+      telegram_handle: 'placeholder_volunteer_3',
+      consent_given: true,
+      user_id: volunteer3User.id,
+    },
+  })
+
+  const volunteer4User = await prisma.user.create({
+    data: { email: 'volunteer4@example.test', password_hash: passwordHash, type: 'volunteer' },
+  })
+  await prisma.volunteer.create({
+    data: {
+      name: 'Placeholder Volunteer 4',
+      role: 'checkpoint',
+      checkpoint_id: pointB.id,
+      telegram_handle: 'placeholder_volunteer_4',
+      consent_given: true,
+      user_id: volunteer4User.id,
+    },
+  })
+
+  // Deliberately unassigned -- demonstrates the dashboard's
+  // "not currently assigned to a checkpoint" empty state.
+  const volunteer5User = await prisma.user.create({
+    data: { email: 'volunteer5@example.test', password_hash: passwordHash, type: 'volunteer' },
+  })
+  await prisma.volunteer.create({
+    data: {
+      name: 'Placeholder Volunteer 5 (Unassigned)',
+      role: 'checkpoint',
+      checkpoint_id: null,
+      telegram_handle: 'placeholder_volunteer_5',
+      consent_given: true,
+      user_id: volunteer5User.id,
+    },
+  })
+
+  await prisma.volunteerApplication.createMany({
+    data: [
+      { name: 'Applicant Pending', telegram_handle: 'applicant_pending', message: 'Happy to help at any checkpoint.', status: 'pending' },
+      { name: 'Applicant Approved', telegram_handle: 'applicant_approved', message: 'Available on weekends.', status: 'approved' },
+      { name: 'Applicant Rejected', telegram_handle: 'applicant_rejected', message: null, status: 'rejected' },
+    ],
+  })
+
   const now = Date.now()
 
   await prisma.supplyStatus.createMany({

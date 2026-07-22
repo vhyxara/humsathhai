@@ -1,4 +1,4 @@
-# DemocracySaviour
+# HumSathHai
 
 A small crisis-relief coordination app. Volunteers at checkpoints report
 what supplies they're low on; anyone can check a public "Need Board" to see

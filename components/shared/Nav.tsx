@@ -14,7 +14,7 @@ export async function Nav() {
     <nav className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
       <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3 sm:px-6">
         <Link href="/" className="text-sm font-semibold text-black dark:text-zinc-50">
-          DemocracySaviour
+          HumSathHai
         </Link>
 
         <div className="flex items-center gap-4">

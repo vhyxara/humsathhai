@@ -86,6 +86,7 @@ async function main() {
     data: [
       { checkpoint_id: pointA.id, item: 'Food', status: 'urgent', updated_at: new Date(now - 12 * 60 * 1000) },
       { checkpoint_id: pointA.id, item: 'Water', status: 'enough', updated_at: new Date(now - 2 * HOUR) },
+      { checkpoint_id: pointA.id, item: 'Masks', status: 'low', updated_at: new Date(now - 45 * 60 * 1000) },
       { checkpoint_id: pointB.id, item: 'Masks', status: 'enough', updated_at: new Date(now - 2 * HOUR) },
       { checkpoint_id: pointB.id, item: 'Gloves', status: 'low', updated_at: new Date(now - 3 * HOUR) },
       { checkpoint_id: pointC.id, item: 'Water', status: 'urgent', updated_at: new Date(now - 40 * 60 * 1000) },

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { relativeTime } from '@/lib/shared/relativeTime'
 import { StatusBadge } from '@/components/checkpoints/StatusBadge'
 
@@ -36,15 +37,19 @@ function SupplyStatusRow({ item }: { item: SupplyStatusItem }) {
 
       if (!response.ok) {
         const body = await response.json().catch(() => ({}))
-        setError(typeof body.error === 'string' ? body.error : 'Failed to update status')
+        const message = typeof body.error === 'string' ? body.error : 'Failed to update status'
+        setError(message)
+        toast.error(message)
         return
       }
 
       const updated: SupplyStatusItem = await response.json()
       setCurrent(updated)
       setSelected(updated.status)
+      toast.success(`${updated.item} updated to ${updated.status}`)
     } catch {
       setError('Failed to update status')
+      toast.error('Failed to update status')
     } finally {
       setSaving(false)
     }

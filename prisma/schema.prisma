@@ -18,6 +18,8 @@ model Volunteer {
   role            VolunteerRole
   checkpoint_id   String?
   checkpoint      Checkpoint?     @relation(fields: [checkpoint_id], references: [id])
+  entry_point_id  String?         @unique
+  entryPoint      EntryPoint?     @relation(fields: [entry_point_id], references: [id])
   telegram_handle String
   consent_given   Boolean         @default(false)
   status          VolunteerStatus @default(active)
@@ -44,10 +46,10 @@ model Checkpoint {
 }
 
 model EntryPoint {
-  id           String       @id @default(cuid())
-  name         String
-  volunteer_id String?
-  checkpoints  Checkpoint[]
+  id          String       @id @default(cuid())
+  name        String
+  volunteer   Volunteer?
+  checkpoints Checkpoint[]
 }
 
 model SupplyStatus {

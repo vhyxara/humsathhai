@@ -37,6 +37,7 @@ async function main() {
     data: {
       name: 'Placeholder Volunteer 1',
       role: 'entry',
+      entry_point_id: entryPoint1.id,
       telegram_handle: 'placeholder_volunteer_1',
       consent_given: true,
     },

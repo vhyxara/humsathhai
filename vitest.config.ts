@@ -25,5 +25,9 @@ export default defineConfig({
     // `// @vitest-environment jsdom` directive instead of switching this
     // globally.
     environment: 'node',
+    // The isolated Neon test branch auto-suspends when idle; the first
+    // query after a gap can take several seconds to wake it, which exceeds
+    // Vitest's 5000ms default.
+    testTimeout: 20000,
   },
 })

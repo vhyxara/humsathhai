@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers'
 import { PrismaAdapter } from '@auth/prisma-adapter'
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/shared/prisma'
 
 // Auth.js hard-rejects session.strategy: "database" whenever every configured
 // provider is Credentials-only (@auth/core/lib/utils/assert.js throws

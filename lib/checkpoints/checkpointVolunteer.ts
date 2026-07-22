@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/shared/prisma'
 
 const VALID_STATUSES = new Set(['urgent', 'low', 'enough'])
 

@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
-import { prisma } from '@/lib/prisma'
-import { relativeTime } from '@/lib/relativeTime'
-import { StatusBadge } from '@/components/StatusBadge'
+import { prisma } from '@/lib/shared/prisma'
+import { relativeTime } from '@/lib/shared/relativeTime'
+import { StatusBadge } from '@/components/checkpoints/StatusBadge'
 
 async function getCheckpointDetail(id: string) {
   return prisma.checkpoint.findUnique({

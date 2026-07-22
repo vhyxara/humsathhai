@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
-import { getSession } from '@/lib/session'
-import { getCheckpointVolunteerContext, getCheckpointSupplyStatuses } from '@/lib/checkpointVolunteer'
-import { SupplyStatusList } from '@/components/SupplyStatusList'
+import { getSession } from '@/lib/auth/session'
+import { getCheckpointVolunteerContext, getCheckpointSupplyStatuses } from '@/lib/checkpoints/checkpointVolunteer'
+import { SupplyStatusList } from '@/components/checkpoints/SupplyStatusList'
 
 function LogoutForm() {
   return (

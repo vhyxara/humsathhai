@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { relativeTime } from '@/lib/relativeTime'
-import { StatusBadge } from '@/components/StatusBadge'
+import { relativeTime } from '@/lib/shared/relativeTime'
+import { StatusBadge } from '@/components/checkpoints/StatusBadge'
 
 type SupplyLevel = 'urgent' | 'low' | 'enough'
 

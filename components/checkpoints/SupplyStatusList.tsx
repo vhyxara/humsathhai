@@ -68,7 +68,7 @@ function SupplyStatusRow({ item }: { item: SupplyStatusItem }) {
             key={option}
             type="button"
             onClick={() => setSelected(option)}
-            className={`rounded-full border px-3 py-1 text-sm font-medium capitalize ${
+            className={`cursor-pointer rounded-full border px-3 py-1 text-sm font-medium capitalize ${
               selected === option
                 ? 'border-blue-600 bg-blue-600 text-white'
                 : 'border-zinc-300 text-zinc-700 dark:border-zinc-700 dark:text-zinc-300'
@@ -81,7 +81,7 @@ function SupplyStatusRow({ item }: { item: SupplyStatusItem }) {
           type="button"
           onClick={handleSave}
           disabled={!dirty || saving}
-          className="ml-auto rounded-full bg-black px-4 py-1 text-sm font-semibold text-white disabled:opacity-40 dark:bg-white dark:text-black"
+          className="ml-auto cursor-pointer rounded-full bg-black px-4 py-1 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40 dark:bg-white dark:text-black"
         >
           {saving ? 'Saving…' : 'Save'}
         </button>

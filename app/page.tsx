@@ -1,11 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { relativeTime } from '@/lib/relativeTime'
-
-const STATUS_STYLES = {
-  urgent: { label: 'Urgent', dot: 'bg-red-500', badge: 'bg-red-100 text-red-800' },
-  low: { label: 'Low', dot: 'bg-yellow-500', badge: 'bg-yellow-100 text-yellow-800' },
-  enough: { label: 'Enough', dot: 'bg-green-500', badge: 'bg-green-100 text-green-800' },
-} as const
+import { StatusBadge } from '@/components/StatusBadge'
 
 async function getNeedBoard() {
   return prisma.supplyStatus.findMany({
@@ -42,33 +37,25 @@ export default async function Home() {
         </header>
 
         <section className="flex flex-col gap-3">
-          {needBoard.map((entry) => {
-            const style = STATUS_STYLES[entry.status]
-            return (
-              <div
-                key={`${entry.checkpoint.name}-${entry.item}`}
-                className="flex items-center justify-between gap-4 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
-              >
-                <div className="flex flex-col gap-1">
-                  <span className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
-                    {entry.checkpoint.name}
-                  </span>
-                  <span className="text-lg font-semibold text-black dark:text-zinc-50">
-                    {entry.item}
-                  </span>
-                  <span className="text-xs text-zinc-400 dark:text-zinc-500">
-                    Updated {relativeTime(entry.updated_at)}
-                  </span>
-                </div>
-                <span
-                  className={`flex items-center gap-2 whitespace-nowrap rounded-full px-3 py-1 text-sm font-medium ${style.badge}`}
-                >
-                  <span className={`h-2 w-2 rounded-full ${style.dot}`} />
-                  {style.label}
+          {needBoard.map((entry) => (
+            <div
+              key={`${entry.checkpoint.name}-${entry.item}`}
+              className="flex items-center justify-between gap-4 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
+            >
+              <div className="flex flex-col gap-1">
+                <span className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                  {entry.checkpoint.name}
+                </span>
+                <span className="text-lg font-semibold text-black dark:text-zinc-50">
+                  {entry.item}
+                </span>
+                <span className="text-xs text-zinc-400 dark:text-zinc-500">
+                  Updated {relativeTime(entry.updated_at)}
                 </span>
               </div>
-            )
-          })}
+              <StatusBadge status={entry.status} />
+            </div>
+          ))}
         </section>
       </main>
     </div>

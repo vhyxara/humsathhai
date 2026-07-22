@@ -3,19 +3,6 @@ import { getSession } from '@/lib/auth/session'
 import { getCheckpointVolunteerContext, getCheckpointSupplyStatuses } from '@/lib/checkpoints/checkpointVolunteer'
 import { SupplyStatusList } from '@/components/checkpoints/SupplyStatusList'
 
-function LogoutForm() {
-  return (
-    <form action="/api/logout" method="post">
-      <button
-        type="submit"
-        className="text-sm font-semibold text-blue-600 underline dark:text-blue-400"
-      >
-        Log out
-      </button>
-    </form>
-  )
-}
-
 export default async function DashboardPage() {
   const session = await getSession()
 
@@ -32,7 +19,6 @@ export default async function DashboardPage() {
           <p className="text-black dark:text-zinc-50">
             This dashboard is only available to checkpoint volunteers.
           </p>
-          <LogoutForm />
         </main>
       </div>
     )
@@ -61,8 +47,6 @@ export default async function DashboardPage() {
         ) : (
           <SupplyStatusList items={supplyStatuses} />
         )}
-
-        <LogoutForm />
       </main>
     </div>
   )

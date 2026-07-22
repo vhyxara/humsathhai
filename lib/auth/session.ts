@@ -1,3 +1,4 @@
+import { cache } from 'react'
 import { cookies } from 'next/headers'
 import { PrismaAdapter } from '@auth/prisma-adapter'
 import { prisma } from '@/lib/shared/prisma'
@@ -44,7 +45,10 @@ export async function destroySession() {
   cookieStore.delete(SESSION_COOKIE)
 }
 
-export async function getSession() {
+// Wrapped in React's cache() so multiple call sites within the same render
+// pass (e.g. the shared Nav and a page's own authorization check) share one
+// DB lookup instead of each issuing their own.
+export const getSession = cache(async () => {
   const cookieStore = await cookies()
   const token = cookieStore.get(SESSION_COOKIE)?.value
 
@@ -78,4 +82,4 @@ export async function getSession() {
     name: profile.name,
     role: profile.role,
   }
-}
+})

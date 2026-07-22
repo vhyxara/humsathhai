@@ -1,16 +1,31 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
-import { getSession } from '@/lib/session'
-import { authorizeSupplyStatusUpdate } from '@/lib/checkpointVolunteer'
+import { z } from 'zod'
+import { prisma } from '@/lib/shared/prisma'
+import { getSession } from '@/lib/auth/session'
+import { authorizeSupplyStatusUpdate } from '@/lib/checkpoints/checkpointVolunteer'
+
+const SupplyStatusUpdateSchema = z.object({
+  id: z.string().min(1),
+  status: z.enum(['urgent', 'low', 'enough']),
+})
 
 export async function PATCH(request: Request) {
+  const body = await request.json()
+  const parsed = SupplyStatusUpdateSchema.safeParse(body)
+
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: 'Invalid request', details: parsed.error.flatten() },
+      { status: 400 }
+    )
+  }
+
   const session = await getSession()
   if (!session) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
   }
 
-  const body = await request.json()
-  const authorization = await authorizeSupplyStatusUpdate(session.id, body.id, body.status)
+  const authorization = await authorizeSupplyStatusUpdate(session.id, parsed.data.id, parsed.data.status)
 
   if (!authorization.ok) {
     return NextResponse.json({ error: authorization.error }, { status: authorization.httpStatus })

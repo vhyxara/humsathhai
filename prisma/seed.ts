@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
+import bcrypt from 'bcryptjs'
 
 const connectionString = process.env.DATABASE_URL
 
@@ -11,6 +12,9 @@ const adapter = new PrismaPg({ connectionString })
 const prisma = new PrismaClient({ adapter })
 
 const HOUR = 60 * 60 * 1000
+// Fake test-only credential, not a real secret. Login: any of the seeded
+// emails below with this password.
+const SEED_PASSWORD = 'TestPassword123!'
 
 async function main() {
   const entryPoint1 = await prisma.entryPoint.create({
@@ -33,6 +37,24 @@ async function main() {
     data: { name: 'Point D', entry_point_id: entryPoint2.id },
   })
 
+  const passwordHash = await bcrypt.hash(SEED_PASSWORD, 10)
+
+  const adminUser = await prisma.user.create({
+    data: { email: 'admin@example.test', password_hash: passwordHash, type: 'admin' },
+  })
+  await prisma.admin.create({
+    data: {
+      name: 'Placeholder Admin',
+      email: 'admin@example.test',
+      password_hash: passwordHash,
+      role: 'super',
+      user_id: adminUser.id,
+    },
+  })
+
+  const volunteer1User = await prisma.user.create({
+    data: { email: 'volunteer1@example.test', password_hash: passwordHash, type: 'volunteer' },
+  })
   await prisma.volunteer.create({
     data: {
       name: 'Placeholder Volunteer 1',
@@ -40,7 +62,12 @@ async function main() {
       entry_point_id: entryPoint1.id,
       telegram_handle: 'placeholder_volunteer_1',
       consent_given: true,
+      user_id: volunteer1User.id,
     },
+  })
+
+  const volunteer2User = await prisma.user.create({
+    data: { email: 'volunteer2@example.test', password_hash: passwordHash, type: 'volunteer' },
   })
   await prisma.volunteer.create({
     data: {
@@ -49,6 +76,7 @@ async function main() {
       checkpoint_id: pointA.id,
       telegram_handle: 'placeholder_volunteer_2',
       consent_given: true,
+      user_id: volunteer2User.id,
     },
   })
 

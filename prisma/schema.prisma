@@ -23,6 +23,8 @@ model Volunteer {
   telegram_handle String
   consent_given   Boolean         @default(false)
   status          VolunteerStatus @default(active)
+  user_id         String          @unique
+  user            User            @relation(fields: [user_id], references: [id])
 }
 
 enum VolunteerRole {
@@ -73,11 +75,37 @@ model Admin {
   email         String    @unique
   password_hash String
   role          AdminRole
+  user_id       String    @unique
+  user          User      @relation(fields: [user_id], references: [id])
 }
 
 enum AdminRole {
   super
   checkpoint
+}
+
+model User {
+  id            String      @id @default(cuid())
+  email         String      @unique
+  password_hash String
+  type          UserType
+  created_at    DateTime    @default(now())
+  admin         Admin?
+  volunteer     Volunteer?
+  sessions      Session[]
+}
+
+enum UserType {
+  admin
+  volunteer
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model VolunteerApplication {

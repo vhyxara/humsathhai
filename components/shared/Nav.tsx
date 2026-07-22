@@ -1,9 +1,12 @@
 import Link from 'next/link'
 import { getSession } from '@/lib/auth/session'
+import { ThemeToggle } from '@/components/shared/ThemeToggle'
 
 // Server Component -- calls getSession() directly rather than fetching
 // after mount. The logout control is a plain form POST (no client
-// interactivity needed), so no client-component split is required here.
+// interactivity needed). ThemeToggle is the one piece that needs to be a
+// client component (useTheme() is a hook) -- it's embedded as a child,
+// Nav itself stays server-rendered.
 export async function Nav() {
   const session = await getSession()
 
@@ -14,31 +17,34 @@ export async function Nav() {
           DemocracySaviour
         </Link>
 
-        {session ? (
-          <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4">
+          {session ? (
+            <>
+              <Link
+                href="/dashboard"
+                className="text-sm font-semibold text-blue-600 hover:underline dark:text-blue-400"
+              >
+                Dashboard
+              </Link>
+              <form action="/api/logout" method="post">
+                <button
+                  type="submit"
+                  className="cursor-pointer text-sm font-semibold text-blue-600 underline dark:text-blue-400"
+                >
+                  Log out
+                </button>
+              </form>
+            </>
+          ) : (
             <Link
-              href="/dashboard"
+              href="/login"
               className="text-sm font-semibold text-blue-600 hover:underline dark:text-blue-400"
             >
-              Dashboard
+              Log in
             </Link>
-            <form action="/api/logout" method="post">
-              <button
-                type="submit"
-                className="cursor-pointer text-sm font-semibold text-blue-600 underline dark:text-blue-400"
-              >
-                Log out
-              </button>
-            </form>
-          </div>
-        ) : (
-          <Link
-            href="/login"
-            className="text-sm font-semibold text-blue-600 hover:underline dark:text-blue-400"
-          >
-            Log in
-          </Link>
-        )}
+          )}
+          <ThemeToggle />
+        </div>
       </div>
     </nav>
   )

@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+/* Switches the dark: variant from OS-level prefers-color-scheme to a .dark
+   class on <html>, which next-themes manages (including resolving system
+   preference itself) -- keeps this file's own CSS vars below and Tailwind's
+   dark: utility classes driven by the same single source of truth. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -12,11 +18,9 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
 }
 
 body {

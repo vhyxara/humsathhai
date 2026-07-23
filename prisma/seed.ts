@@ -137,6 +137,22 @@ async function main() {
     },
   })
 
+  // Deliberately unassigned -- demonstrates the Entry Volunteer dashboard's
+  // "not currently assigned to an entry point" empty state.
+  const volunteer6User = await prisma.user.create({
+    data: { email: 'volunteer6@example.test', password_hash: passwordHash, type: 'volunteer' },
+  })
+  await prisma.volunteer.create({
+    data: {
+      name: 'Placeholder Volunteer 6 (Unassigned Entry)',
+      role: 'entry',
+      entry_point_id: null,
+      telegram_handle: 'placeholder_volunteer_6',
+      consent_given: true,
+      user_id: volunteer6User.id,
+    },
+  })
+
   await prisma.volunteerApplication.createMany({
     data: [
       { name: 'Applicant Pending', telegram_handle: 'applicant_pending', message: 'Happy to help at any checkpoint.', status: 'pending' },

@@ -16,6 +16,28 @@ export async function getCheckpointSupplyStatuses(checkpointId: string) {
   })
 }
 
+// Independent of getCheckpointVolunteerContext -- that function is also
+// used by authorizeSupplyStatusUpdate, so it stays untouched. This reads
+// the same Volunteer row fresh from the DB, selecting entry_point_id
+// instead of checkpoint_id, for the Entry Volunteer's own dashboard branch.
+export async function getEntryVolunteerContext(userId: string) {
+  return prisma.volunteer.findUnique({
+    where: { user_id: userId },
+    select: { name: true, role: true, entry_point_id: true },
+  })
+}
+
+export async function getRoutedCheckpoints(entryPointId: string) {
+  return prisma.checkpoint.findMany({
+    where: { entry_point_id: entryPointId },
+    select: {
+      id: true,
+      name: true,
+      supplyStatuses: { select: { id: true, item: true, status: true, updated_at: true } },
+    },
+  })
+}
+
 type AuthorizedUpdate = { ok: true; supplyStatusId: string; status: 'urgent' | 'low' | 'enough' }
 type RejectedUpdate = { ok: false; httpStatus: 400 | 403; error: string }
 

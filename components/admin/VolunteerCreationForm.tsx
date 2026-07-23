@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { usePendingAction } from '@/lib/shared/usePendingAction'
 
@@ -45,6 +46,7 @@ export function VolunteerCreationForm({
   prefill: CreationPrefill
   onCreated: (applicationId: string) => void
 }) {
+  const router = useRouter()
   const [name, setName] = useState('')
   const [telegramHandle, setTelegramHandle] = useState('')
   const [role, setRole] = useState<'entry' | 'checkpoint'>('entry')
@@ -92,6 +94,13 @@ export function VolunteerCreationForm({
       setEmail('')
       setRole('entry')
       if (approvedApplicationId) onCreated(approvedApplicationId)
+      // Same pattern as the login page: re-fetch this route's Server
+      // Component data so the new volunteer shows up in the Assign tab's
+      // dropdown without a manual reload. There's no cache layer to
+      // invalidate here (page.tsx reads cookies, so it's already fully
+      // dynamic) -- this purely triggers the refetch that nothing else
+      // was triggering.
+      router.refresh()
     } catch {
       setError('Failed to create volunteer')
       toast.error('Failed to create volunteer')

@@ -9,3 +9,17 @@ export async function getCheckpointsWithSupplyStatuses() {
     },
   })
 }
+
+export async function getVolunteerApplications() {
+  return prisma.volunteerApplication.findMany({
+    orderBy: { submitted_at: 'desc' },
+    select: {
+      id: true,
+      name: true,
+      telegram_handle: true,
+      message: true,
+      status: true,
+      submitted_at: true,
+    },
+  })
+}

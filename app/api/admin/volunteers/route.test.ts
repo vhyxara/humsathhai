@@ -158,3 +158,135 @@ describe('POST /api/admin/volunteers -- authorization', () => {
     expect(response.status).toBe(400)
   })
 })
+
+describe('POST /api/admin/volunteers -- application_id linking', () => {
+  let userIds: string[] = []
+  let volunteerIds: string[] = []
+  let adminIds: string[] = []
+  let applicationIds: string[] = []
+
+  beforeEach(() => {
+    cookieStore.clear()
+    userIds = []
+    volunteerIds = []
+    adminIds = []
+    applicationIds = []
+  })
+
+  afterEach(async () => {
+    await prisma.volunteer.deleteMany({ where: { id: { in: volunteerIds } } })
+    await prisma.admin.deleteMany({ where: { id: { in: adminIds } } })
+    await prisma.session.deleteMany({ where: { userId: { in: userIds } } })
+    await prisma.user.deleteMany({ where: { id: { in: userIds } } })
+    await prisma.volunteerApplication.deleteMany({ where: { id: { in: applicationIds } } })
+  })
+
+  async function createSuperAdminSession() {
+    const user = await createTestUser('admin')
+    userIds.push(user.id)
+    const admin = await prisma.admin.create({
+      data: { name: 'Super Admin', email: user.email, password_hash: user.password_hash, role: 'super', user_id: user.id },
+    })
+    adminIds.push(admin.id)
+    await createUserSession(user.id)
+    return user
+  }
+
+  async function createApplication(status: 'pending' | 'approved' | 'rejected') {
+    const application = await prisma.volunteerApplication.create({
+      data: { name: 'Applicant', telegram_handle: `applicant_${crypto.randomUUID()}`, status },
+    })
+    applicationIds.push(application.id)
+    return application
+  }
+
+  function buildRequest(body: unknown) {
+    return new Request('http://localhost/api/admin/volunteers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+  }
+
+  function uniqueBody(applicationId?: string) {
+    return {
+      name: 'Approved Applicant',
+      telegram_handle: `approved_${crypto.randomUUID()}`,
+      role: 'entry' as const,
+      email: `approve-flow-${crypto.randomUUID()}@test.local`,
+      application_id: applicationId,
+    }
+  }
+
+  it('marks a pending application approved, in the same transaction as the account creation', async () => {
+    await createSuperAdminSession()
+    const application = await createApplication('pending')
+
+    const response = await POST(buildRequest(uniqueBody(application.id)))
+    expect(response.status).toBe(201)
+
+    const body = await response.json()
+    const createdVolunteer = await prisma.volunteer.findUniqueOrThrow({ where: { id: body.volunteer.id } })
+    volunteerIds.push(createdVolunteer.id)
+    userIds.push(createdVolunteer.user_id)
+
+    const freshApplication = await prisma.volunteerApplication.findUniqueOrThrow({ where: { id: application.id } })
+    expect(freshApplication.status).toBe('approved')
+  })
+
+  it('rejects with 400 and creates no account when application_id does not exist', async () => {
+    await createSuperAdminSession()
+    const body = uniqueBody('this-application-does-not-exist')
+
+    const response = await POST(buildRequest(body))
+    expect(response.status).toBe(400)
+
+    const created = await prisma.user.findUnique({ where: { email: body.email } })
+    expect(created).toBeNull()
+  })
+
+  it('rejects with 400 and creates no account when application_id points at an already-approved application, without re-approving it', async () => {
+    await createSuperAdminSession()
+    const application = await createApplication('approved')
+    const body = uniqueBody(application.id)
+
+    const response = await POST(buildRequest(body))
+    expect(response.status).toBe(400)
+
+    const created = await prisma.user.findUnique({ where: { email: body.email } })
+    expect(created).toBeNull()
+
+    const freshApplication = await prisma.volunteerApplication.findUniqueOrThrow({ where: { id: application.id } })
+    expect(freshApplication.status).toBe('approved')
+  })
+
+  it('rejects with 400 and creates no account when application_id points at a rejected application, without flipping it back to approved', async () => {
+    await createSuperAdminSession()
+    const application = await createApplication('rejected')
+    const body = uniqueBody(application.id)
+
+    const response = await POST(buildRequest(body))
+    expect(response.status).toBe(400)
+
+    const created = await prisma.user.findUnique({ where: { email: body.email } })
+    expect(created).toBeNull()
+
+    const freshApplication = await prisma.volunteerApplication.findUniqueOrThrow({ where: { id: application.id } })
+    expect(freshApplication.status).toBe('rejected')
+  })
+
+  it('allows creating a volunteer with no application_id at all -- the field is optional', async () => {
+    await createSuperAdminSession()
+    const body = uniqueBody(undefined)
+
+    const response = await POST(buildRequest(body))
+    expect(response.status).toBe(201)
+
+    const createdUser = await prisma.user.findUnique({ where: { email: body.email } })
+    expect(createdUser).not.toBeNull()
+    userIds.push(createdUser!.id)
+    const createdVolunteer = await prisma.volunteer.findUnique({ where: { user_id: createdUser!.id } })
+    expect(createdVolunteer).not.toBeNull()
+    volunteerIds.push(createdVolunteer!.id)
+  })
+})

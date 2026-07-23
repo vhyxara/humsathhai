@@ -2,7 +2,11 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getSession } from '@/lib/auth/session'
 import { requireSuperAdmin } from '@/lib/auth/adminAuth'
-import { createVolunteerAccount } from '@/lib/admin/createVolunteer'
+import {
+  createVolunteerAccount,
+  ApplicationNotFoundError,
+  ApplicationNotPendingError,
+} from '@/lib/admin/createVolunteer'
 
 // Deliberately does NOT accept `type`, an admin `role`, or `consent_given`
 // as input fields -- those are hardcoded server-side in
@@ -12,6 +16,7 @@ const CreateVolunteerSchema = z.object({
   telegram_handle: z.string().min(1),
   role: z.enum(['entry', 'checkpoint']),
   email: z.string().email(),
+  application_id: z.string().min(1).optional(),
 })
 
 export async function POST(request: Request) {
@@ -34,13 +39,23 @@ export async function POST(request: Request) {
     )
   }
 
-  const { volunteer, tempPassword } = await createVolunteerAccount(parsed.data)
+  try {
+    const { volunteer, tempPassword } = await createVolunteerAccount(parsed.data)
 
-  return NextResponse.json(
-    {
-      volunteer: { id: volunteer.id, name: volunteer.name, role: volunteer.role },
-      temporary_password: tempPassword,
-    },
-    { status: 201 }
-  )
+    return NextResponse.json(
+      {
+        volunteer: { id: volunteer.id, name: volunteer.name, role: volunteer.role },
+        temporary_password: tempPassword,
+      },
+      { status: 201 }
+    )
+  } catch (error) {
+    if (error instanceof ApplicationNotFoundError) {
+      return NextResponse.json({ error: 'Application not found' }, { status: 400 })
+    }
+    if (error instanceof ApplicationNotPendingError) {
+      return NextResponse.json({ error: 'Application is not pending' }, { status: 400 })
+    }
+    throw error
+  }
 }

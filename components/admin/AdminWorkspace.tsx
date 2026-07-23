@@ -1,16 +1,38 @@
 'use client'
 
-import { VolunteerCreationForm } from '@/components/admin/VolunteerCreationForm'
+import { useState } from 'react'
+import { VolunteerCreationForm, type CreationPrefill } from '@/components/admin/VolunteerCreationForm'
+import { ApplicationsList, type Application } from '@/components/admin/ApplicationsList'
 
-// Exists specifically so VolunteerCreationForm is rendered from within
-// client-component code, not passed props (including future callback
-// props) directly from the server-rendered app/admin/page.tsx -- Next.js
-// cannot serialize a function prop across that boundary, which tsc does
-// not catch. This wrapper is the fix.
-export function AdminWorkspace() {
+export function AdminWorkspace({ applications: initialApplications }: { applications: Application[] }) {
+  const [applications, setApplications] = useState(initialApplications)
+  const [prefill, setPrefill] = useState<CreationPrefill>(null)
+
+  function handleCreated(applicationId: string) {
+    setApplications((current) =>
+      current.map((application) =>
+        application.id === applicationId ? { ...application, status: 'approved' } : application
+      )
+    )
+    setPrefill(null)
+  }
+
+  function handleReject(applicationId: string) {
+    setApplications((current) =>
+      current.map((application) =>
+        application.id === applicationId ? { ...application, status: 'rejected' } : application
+      )
+    )
+  }
+
+  function handleApproveClick(application: Application) {
+    setPrefill({ name: application.name, telegram_handle: application.telegram_handle, applicationId: application.id })
+  }
+
   return (
     <div className="flex flex-col gap-8">
-      <VolunteerCreationForm />
+      <VolunteerCreationForm prefill={prefill} onCreated={handleCreated} />
+      <ApplicationsList applications={applications} onApproveClick={handleApproveClick} onReject={handleReject} />
     </div>
   )
 }

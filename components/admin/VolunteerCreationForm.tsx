@@ -1,8 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { usePendingAction } from '@/lib/shared/usePendingAction'
+
+export type CreationPrefill = { name: string; telegram_handle: string; applicationId: string } | null
 
 function TempPasswordReveal({ name, tempPassword }: { name: string; tempPassword: string }) {
   return (
@@ -15,13 +17,27 @@ function TempPasswordReveal({ name, tempPassword }: { name: string; tempPassword
   )
 }
 
-export function VolunteerCreationForm() {
+export function VolunteerCreationForm({
+  prefill,
+  onCreated,
+}: {
+  prefill: CreationPrefill
+  onCreated: (applicationId: string) => void
+}) {
   const [name, setName] = useState('')
   const [telegramHandle, setTelegramHandle] = useState('')
   const [role, setRole] = useState<'entry' | 'checkpoint'>('entry')
   const [email, setEmail] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<{ name: string; tempPassword: string } | null>(null)
+
+  useEffect(() => {
+    if (prefill) {
+      setName(prefill.name)
+      setTelegramHandle(prefill.telegram_handle)
+      setResult(null)
+    }
+  }, [prefill])
 
   const [submitting, handleSubmit] = usePendingAction(async () => {
     setError(null)
@@ -34,6 +50,7 @@ export function VolunteerCreationForm() {
           telegram_handle: telegramHandle,
           role,
           email,
+          application_id: prefill?.applicationId,
         }),
       })
 
@@ -48,10 +65,12 @@ export function VolunteerCreationForm() {
 
       setResult({ name: body.volunteer.name, tempPassword: body.temporary_password })
       toast.success(`${body.volunteer.name} created`)
+      const approvedApplicationId = prefill?.applicationId
       setName('')
       setTelegramHandle('')
       setEmail('')
       setRole('entry')
+      if (approvedApplicationId) onCreated(approvedApplicationId)
     } catch {
       setError('Failed to create volunteer')
       toast.error('Failed to create volunteer')

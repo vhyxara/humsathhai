@@ -23,3 +23,18 @@ export async function getVolunteerApplications() {
     },
   })
 }
+
+export async function getVolunteersForAssignment() {
+  return prisma.volunteer.findMany({
+    orderBy: { name: 'asc' },
+    select: { id: true, name: true, role: true, checkpoint_id: true, entry_point_id: true },
+  })
+}
+
+export async function getAssignmentTargets() {
+  const [checkpoints, entryPoints] = await Promise.all([
+    prisma.checkpoint.findMany({ select: { id: true, name: true } }),
+    prisma.entryPoint.findMany({ select: { id: true, name: true } }),
+  ])
+  return { checkpoints, entryPoints }
+}

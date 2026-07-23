@@ -13,7 +13,7 @@ type SupplyStatusRow = {
   updated_at: Date
 }
 
-type CheckpointRow = { id: string; name: string; supplyStatuses: SupplyStatusRow[] }
+export type CheckpointRow = { id: string; name: string; supplyStatuses: SupplyStatusRow[] }
 
 function isStale(supplyStatuses: SupplyStatusRow[]): boolean {
   if (supplyStatuses.length === 0) return false

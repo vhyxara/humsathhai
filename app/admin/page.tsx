@@ -7,7 +7,6 @@ import {
   getVolunteersForAssignment,
   getAssignmentTargets,
 } from '@/lib/admin/adminData'
-import { StatusMonitoring } from '@/components/admin/StatusMonitoring'
 import { AdminWorkspace } from '@/components/admin/AdminWorkspace'
 
 export default async function AdminPage() {
@@ -44,8 +43,8 @@ export default async function AdminPage() {
         <h1 className="text-2xl font-bold tracking-tight text-black dark:text-zinc-50 sm:text-3xl">
           Admin
         </h1>
-        <StatusMonitoring checkpoints={checkpoints} />
         <AdminWorkspace
+          statusCheckpoints={checkpoints}
           applications={applications}
           volunteers={volunteers}
           checkpoints={targets.checkpoints}

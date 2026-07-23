@@ -7,12 +7,33 @@ import { usePendingAction } from '@/lib/shared/usePendingAction'
 export type CreationPrefill = { name: string; telegram_handle: string; applicationId: string } | null
 
 function TempPasswordReveal({ name, tempPassword }: { name: string; tempPassword: string }) {
+  const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle')
+
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(tempPassword)
+      setCopyState('copied')
+    } catch {
+      setCopyState('failed')
+    }
+    setTimeout(() => setCopyState('idle'), 2000)
+  }
+
   return (
     <div className="flex flex-col gap-1 rounded-lg border border-blue-300 bg-blue-50 p-3 text-sm dark:border-blue-800 dark:bg-blue-950">
       <p className="text-black dark:text-zinc-50">
         Temporary password for {name} (shown once — share it securely, it will not be shown again):
       </p>
-      <code className="break-all font-mono text-blue-700 dark:text-blue-300">{tempPassword}</code>
+      <div className="flex items-center gap-2">
+        <code className="break-all font-mono text-blue-700 dark:text-blue-300">{tempPassword}</code>
+        <button
+          type="button"
+          onClick={handleCopy}
+          className="shrink-0 cursor-pointer rounded-full border border-blue-300 px-3 py-1 text-xs font-semibold text-blue-700 dark:border-blue-700 dark:text-blue-300"
+        >
+          {copyState === 'copied' ? 'Copied' : copyState === 'failed' ? "Couldn't copy" : 'Copy'}
+        </button>
+      </div>
     </div>
   )
 }

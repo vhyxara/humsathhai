@@ -38,6 +38,53 @@ export async function getRoutedCheckpoints(entryPointId: string) {
   })
 }
 
+// Resolves logged_by from userId itself, via its own independent lookup --
+// getEntryVolunteerContext doesn't select the Volunteer's own id (only
+// name/role/entry_point_id) and stays untouched, so this is a second,
+// self-contained fresh read rather than an extension of that function.
+// Never accepts logged_by from a caller; it is always server-derived here.
+export async function createDeliveryLog(userId: string, checkpointId: string, item: string) {
+  const volunteer = await prisma.volunteer.findUniqueOrThrow({
+    where: { user_id: userId },
+    select: { id: true },
+  })
+
+  return prisma.deliveryLog.create({
+    data: { checkpoint_id: checkpointId, item, logged_by: volunteer.id },
+    // Includes checkpoint.name (not just checkpoint_id) so the response
+    // shape exactly matches getRecentDeliveryLogs's rows -- the client
+    // appends this row directly into the recent-entries list, and it must
+    // be self-sufficient rather than requiring the client to stitch in
+    // data it happens to already know from elsewhere.
+    select: {
+      id: true,
+      checkpoint_id: true,
+      item: true,
+      logged_by: true,
+      created_at: true,
+      checkpoint: { select: { name: true } },
+    },
+  })
+}
+
+// Scoped the same way as getRoutedCheckpoints -- via the checkpoint's
+// entry_point_id, never via anything client-supplied. No volunteer
+// contact data selected, matching the read-only dashboard's own
+// select-scoping discipline.
+export async function getRecentDeliveryLogs(entryPointId: string) {
+  return prisma.deliveryLog.findMany({
+    where: { checkpoint: { entry_point_id: entryPointId } },
+    select: {
+      id: true,
+      item: true,
+      created_at: true,
+      checkpoint: { select: { name: true } },
+    },
+    orderBy: { created_at: 'desc' },
+    take: 20,
+  })
+}
+
 type AuthorizedUpdate = { ok: true; supplyStatusId: string; status: 'urgent' | 'low' | 'enough' }
 type RejectedUpdate = { ok: false; httpStatus: 400 | 403; error: string }
 

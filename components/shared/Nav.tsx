@@ -20,6 +20,9 @@ export async function Nav() {
         <div className="flex items-center gap-4">
           {session ? (
             <>
+              <span className="hidden text-sm text-zinc-500 dark:text-zinc-400 sm:inline">
+                {session.name}
+              </span>
               <Link
                 href="/dashboard"
                 className="text-sm font-semibold text-blue-600 hover:underline dark:text-blue-400"

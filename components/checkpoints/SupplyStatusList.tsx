@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { relativeTime } from '@/lib/shared/relativeTime'
 import { StatusBadge } from '@/components/checkpoints/StatusBadge'
+import { usePendingAction } from '@/lib/shared/usePendingAction'
 
 type SupplyLevel = 'urgent' | 'low' | 'enough'
 
@@ -19,13 +20,11 @@ const STATUS_OPTIONS: SupplyLevel[] = ['enough', 'low', 'urgent']
 function SupplyStatusRow({ item }: { item: SupplyStatusItem }) {
   const [current, setCurrent] = useState(item)
   const [selected, setSelected] = useState<SupplyLevel>(item.status)
-  const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const dirty = selected !== current.status
 
-  async function handleSave() {
-    setSaving(true)
+  const [saving, handleSave] = usePendingAction(async () => {
     setError(null)
 
     try {
@@ -50,10 +49,8 @@ function SupplyStatusRow({ item }: { item: SupplyStatusItem }) {
     } catch {
       setError('Failed to update status')
       toast.error('Failed to update status')
-    } finally {
-      setSaving(false)
     }
-  }
+  })
 
   return (
     <div className="flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">

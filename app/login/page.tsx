@@ -2,17 +2,16 @@
 
 import { useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
+import { usePendingAction } from '@/lib/shared/usePendingAction'
 
 export default function LoginPage() {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+  const [submitting, submit] = usePendingAction(async (formData: FormData) => {
     setError(null)
 
-    const formData = new FormData(event.currentTarget)
     const res = await fetch('/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -29,6 +28,11 @@ export default function LoginPage() {
 
     router.push('/dashboard')
     router.refresh()
+  })
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    submit(new FormData(event.currentTarget))
   }
 
   return (
@@ -61,9 +65,10 @@ export default function LoginPage() {
         {error && <p className="text-sm text-red-600">{error}</p>}
         <button
           type="submit"
-          className="cursor-pointer rounded-md bg-black px-3 py-2 text-white dark:bg-zinc-50 dark:text-black"
+          disabled={submitting}
+          className="cursor-pointer rounded-md bg-black px-3 py-2 text-white disabled:cursor-not-allowed disabled:opacity-40 dark:bg-zinc-50 dark:text-black"
         >
-          Log in
+          {submitting ? 'Logging in…' : 'Log in'}
         </button>
       </form>
     </div>

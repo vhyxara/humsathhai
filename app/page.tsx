@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { prisma } from '@/lib/shared/prisma'
 import { relativeTime } from '@/lib/shared/relativeTime'
 import { StatusBadge } from '@/components/checkpoints/StatusBadge'
@@ -8,7 +9,7 @@ async function getNeedBoard() {
       item: true,
       status: true,
       updated_at: true,
-      checkpoint: { select: { name: true } },
+      checkpoint: { select: { id: true, name: true } },
     },
     // Postgres orders native enums by declaration order (urgent, low, enough),
     // so this ordering already puts the most urgent items first.
@@ -38,9 +39,10 @@ export default async function Home() {
 
         <section className="flex flex-col gap-3">
           {needBoard.map((entry) => (
-            <div
-              key={`${entry.checkpoint.name}-${entry.item}`}
-              className="flex items-center justify-between gap-4 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
+            <Link
+              key={`${entry.checkpoint.id}-${entry.item}`}
+              href={`/checkpoint/${entry.checkpoint.id}`}
+              className="flex items-center justify-between gap-4 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition-colors hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700"
             >
               <div className="flex flex-col gap-1">
                 <span className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
@@ -54,7 +56,7 @@ export default async function Home() {
                 </span>
               </div>
               <StatusBadge status={entry.status} />
-            </div>
+            </Link>
           ))}
         </section>
       </main>

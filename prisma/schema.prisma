@@ -26,6 +26,7 @@ model Volunteer {
   status          VolunteerStatus @default(active)
   user_id         String          @unique
   user            User            @relation(fields: [user_id], references: [id])
+  deliveryLogs    DeliveryLog[]
 }
 
 enum VolunteerRole {
@@ -46,6 +47,7 @@ model Checkpoint {
   created_at     DateTime       @default(now())
   volunteers     Volunteer[]
   supplyStatuses SupplyStatus[]
+  deliveryLogs   DeliveryLog[]
 }
 
 model EntryPoint {
@@ -68,6 +70,19 @@ enum SupplyLevel {
   urgent
   low
   enough
+}
+
+// Permanent, never-edited record of a delivery an Entry Volunteer logged
+// for one of their routed checkpoints -- no status field, no quantity, no
+// update timestamp beyond created_at.
+model DeliveryLog {
+  id            String     @id @default(cuid())
+  checkpoint_id String
+  checkpoint    Checkpoint @relation(fields: [checkpoint_id], references: [id])
+  item          String
+  logged_by     String
+  volunteer     Volunteer  @relation(fields: [logged_by], references: [id])
+  created_at    DateTime   @default(now())
 }
 
 model Admin {

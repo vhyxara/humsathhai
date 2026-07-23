@@ -248,3 +248,4 @@ file-based routing requires them.
 - **`prisma migrate reset` requires typed confirmation** in this environment
   when run by an AI agent (Prisma's own safety gate) — it's destructive, so
   treat it that way even when running it yourself.
+  
